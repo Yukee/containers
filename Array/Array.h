@@ -71,6 +71,28 @@ public:
       return *this;
     }
 
+    inline T & operator[](const INT i) const
+    {
+        if(i >= N_) throw std::out_of_range("In Array<T>::operator[](unsigned int i)");
+        return data_[i];
+    }
+
+    inline T & operator[](const Vector<INT> & r)
+    {
+        INT d = D_.size();
+
+        if(r.size() != d) throw std::invalid_argument("In Array<T>::operator[](Vector<unsigned int> r) size of r differs from the number of dimensions of the Array");
+        for(INT i=0;i<d;i++) if(D_[i] <= r[i]) throw std::out_of_range("In Array<T>::operator[](Vector<unsigned int> r)");
+
+        int element = r[d-1];
+            for(unsigned int i=0; i<d-1; i++)
+            {
+                element*=D_[d-2-i];
+                element+=r[d-2-i];
+            }
+        return data_[element];
+    }
+
   //void resize(const unsigned int d, ...);
 
 private :
