@@ -48,11 +48,11 @@ public :
 
   inline Vector<T> & operator=(const Vector<T> & v)
   {
-    if(!(&v == this))
+    if(!(v == *this))
       {
 	N = v.N;
 	if(m_data) delete[] m_data;
-	m_data = 0;
+    m_data = NULL;
 	m_data = new T[N];
 	for(unsigned int i=0;i<N;i++) m_data[i] = v.m_data[i];
       }
