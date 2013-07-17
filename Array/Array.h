@@ -4,9 +4,7 @@
 #include <stdexcept>
 #include <ostream>
 #include <cstdarg> // variable number of arguments for the constructors
-#include <cstdio> // memcpy
-
-#include "../Vector.h"
+#include <vector>
 
 namespace ij
 {
@@ -30,25 +28,20 @@ public:
     Array(const unsigned int d, ...);
 
     // initialize an Array of dimensions D
-    Array(const Vector<INT> & D);
+    Array(const std::vector<INT> &D);
 
     // initialize an Array of dimensions D filled with value v
-    Array(const Vector<INT> &D, const T & v);
-
-    ~Array();
+    Array(const std::vector<INT> &D, const T & v);
 
     // getters
-    Vector<INT> get_dim();
-    unsigned int get_size();
-
-    // check if arrays have the same dimensions
-    bool are_compatible(const Array<T> & rhs) const;
+    std::vector<INT> get_dim();
+    INT get_size();
 
     // check if arrays have the same dimensions and values
     inline friend bool operator==(const Array<T> & a1, const Array<T> & a2)
     {
       // same dimensions
-      bool are_eq = a1.are_compatible(a2);
+        bool are_eq = (a1.D_ == a2.D_);
 
       // same values
       for(INT it=0;it<a1.N_ && are_eq;++it) are_eq = (a1.data_[it] == a2.data_[it]);
@@ -61,62 +54,33 @@ public:
       if(!(rhs == *this))
         {
             D_ = rhs.D_;
-            N_ = rhs.N_;
 
-            if(data_) delete[] data_;
-            data_ = NULL;
-            data_ = new T[N_];
-            for(INT it=0;it<N_;++it) data_[it] = rhs.data_[it];
+            data_ = rhs.data_;
         }
       return *this;
     }
 
-    inline T & operator[](const INT i) const
-    {
-        if(i >= N_) throw std::out_of_range("In Array<T>::operator[](unsigned int i)");
-        return data_[i];
-    }
+    // access operators
+    T & operator[](const INT i) const;
+    T & operator[](const std::vector<INT> & r) const;
+    T & at(const INT i) const;
+    T & at(const std::vector<INT> & r) const;
 
-    inline T & operator[](const Vector<INT> & r)
-    {
-        INT d = D_.size();
-
-        if(r.size() != d) throw std::invalid_argument("In Array<T>::operator[](Vector<unsigned int> r) size of r differs from the number of dimensions of the Array");
-        for(INT i=0;i<d;i++) if(D_[i] <= r[i]) throw std::out_of_range("In Array<T>::operator[](Vector<unsigned int> r)");
-
-        int element = r[d-1];
-            for(unsigned int i=0; i<d-1; i++)
-            {
-                element*=D_[d-2-i];
-                element+=r[d-2-i];
-            }
-        return data_[element];
-    }
-
-  //void resize(const unsigned int d, ...);
 
 private :
 
-  // pointer to data stored in the array
-  T *data_;
+  // data stored in the array
+  std::vector<T> data_;
 
   // dimensions of the array
-  Vector<INT> D_;
-
-  // number of elements
-  unsigned int N_;
+  std::vector<INT> D_;
 };
 
 template <class T>
 Array<T>::Array()
 {
-    D_.resize(2);
-    D_[0] = 1;
-    D_[1] = 1;
-
-    N_ = D_[0]*D_[1];
-
-    data_ = new T[N_];
+    D_.resize(2, 1);
+    data_.resize(2);
 }
 
 template <class T>
@@ -127,70 +91,88 @@ Array<T>::Array(const unsigned int d, ...)
     va_list vl;
     va_start(vl, d);
 
-    N_ = 1;
+    INT n = 1;
     for(unsigned int i=0;i<d;i++)
     {
         D_[i] = va_arg(vl, unsigned int);
-        N_ *= D_[i];
+        n *= D_[i];
     }
 
-    data_ = new T[N_];
+    data_.resize(n);
 }
 
 template <class T>
-Array<T>::Array(const Vector<INT> &D)
+Array<T>::Array(const std::vector<INT> &D)
 {
     D_ = D;
-    N_ = 1;
-    for(INT i=0;i<D_.size();i++) N_ *= D_[i];
-
-    data_ = new T[N_];
+    INT n = 1;
+    for(INT i=0;i<D_.size();i++) n *= D_[i];
+    data_.resize(n);
 }
 
 template <class T>
-Array<T>::Array(const Vector<INT> &D, const T &v)
+Array<T>::Array(const std::vector<INT> &D, const T &v)
 {
     D_ = D;
-    N_ = 1;
-    for(INT i=0;i<D_.size();i++) N_ *= D_[i];
-
-    data_ = new T[N_];
-
-    for(INT it=0;it<N_;++it) data_[it] = v;
+    INT n = 1;
+    for(INT i=0;i<D_.size();i++) n *= D_[i];
+    data_.resize(n, v);
 }
 
 template <class T>
-Vector<INT> Array<T>::get_dim()
+std::vector<INT> Array<T>::get_dim()
 {
     return D_;
 }
 
 template <class T>
-unsigned int Array<T>::get_size()
+INT Array<T>::get_size()
 {
-    return N_;
+    return data_.size();
 }
 
 template <class T>
-bool Array<T>::are_compatible(const Array<T> &rhs) const
+T Array<T>::operator[](const INT i) const
 {
-    // same number of elements
-  bool are_comp = (N_ == rhs.N_);
-
-  // same number of directions
-  are_comp = (D_.size() == rhs.D_.size());
-
-  // same dimensions
-  for(unsigned int i=0;i<D_.size() && are_comp;i++) are_comp = (D_[i] == rhs.D_[i]);
-
-  return are_comp;
+    return data_[i];
 }
 
 template <class T>
-Array<T>::~Array()
+T Array<T>::at(const INT i) const
 {
-  if(data_) delete[] data_;
-  data_ = NULL;
+    return data_.at(i);
+}
+
+template <class T>
+T Array<T>::operator[](const std::vector<INT> & r) const
+{
+    INT n = D_.size();
+    INT elem = D_[n-1];
+    for(INT i=0;i<n-1;i++)
+    {
+        elem *= r[n-i];
+        elem += D_[n-i];
+    }
+
+    return data_[elem];
+}
+
+template <class T>
+T Array<T>::at(const std::vector<INT> & r) const
+{
+    if(r.size() != D_.size()) throw std::invalid_argument("In Array<T>::at");
+
+    for(INT i=0;i<r.size();i++) if(r[i] >= D_[i]) throw std::out_of_range("In Array<T>::at");
+
+    INT n = D_.size();
+    INT elem = D_[n-1];
+    for(INT i=0;i<n-1;i++)
+    {
+        elem *= r[n-i];
+        elem += D_[n-i];
+    }
+
+    return data_[elem];
 }
 
 }
