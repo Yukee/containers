@@ -98,6 +98,8 @@ inline friend std::ostream & operator<<(std::ostream & stream, const Vector<T> &
   Vector< Vector<T> > get_base_vectors(const T additiveIdentity, const T multiplicativeIdentity);
 
   void resize(const unsigned int n);
+
+  void resize(const unsigned int n, const T & v);
   
   // drops component j of the Vector, thus returning a Vector of dim N-1
   Vector<T> drop(const int & j);
@@ -174,9 +176,23 @@ void Vector<T>::resize(const unsigned int n)
     {
         N = n;
         if(m_data) delete[] m_data;
-        m_data = 0;
+        m_data = NULL;
         m_data = new T[N];
     }
+}
+
+template <class T>
+void Vector<T>::resize(const unsigned int n, const T &v)
+{
+    if(n != N)
+    {
+        N = n;
+        if(m_data) delete[] m_data;
+        m_data = NULL;
+        m_data = new T[N];
+    }
+
+    for(unsigned int it=0;it<N;++it) m_data[it] = v;
 }
 
 template <class T>

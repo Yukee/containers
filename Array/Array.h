@@ -6,6 +6,8 @@
 #include <cstdarg> // variable number of arguments for the constructors
 #include <vector>
 
+#include "../Vector.h"
+
 namespace ij
 {
 
@@ -28,14 +30,14 @@ public:
     Array(const unsigned int d, ...);
 
     // initialize an Array of dimensions D
-    Array(const std::vector<INT> &D);
+    Array(const Vector<INT> &D);
 
     // initialize an Array of dimensions D filled with value v
-    Array(const std::vector<INT> &D, const T & v);
+    Array(const Vector<INT> &D, const T & v);
 
     // getters
-    std::vector<INT> get_dim();
-    INT get_size();
+    Vector<INT> get_dim() const;
+    INT get_size() const;
 
     // check if arrays have the same dimensions and values
     inline friend bool operator==(const Array<T> & a1, const Array<T> & a2)
@@ -44,7 +46,7 @@ public:
         bool are_eq = (a1.D_ == a2.D_);
 
       // same values
-      for(INT it=0;it<a1.N_ && are_eq;++it) are_eq = (a1.data_[it] == a2.data_[it]);
+      for(INT it=0;it<a1.D_.size() && are_eq;++it) are_eq = (a1.data_[it] == a2.data_[it]);
 
       return are_eq;
     }
@@ -62,10 +64,20 @@ public:
 
     // access operators
     T & operator[](const INT i) const;
-    T & operator[](const std::vector<INT> & r) const;
-    T & at(const INT i) const;
-    T & at(const std::vector<INT> & r) const;
+    T & operator[](const INT i);
 
+    T & operator[](const Vector<INT> & r) const;
+    T & operator[](const Vector<INT> & r);
+
+    T & at(const INT i) const;
+    T & at(const INT i);
+
+    T & at(const Vector<INT> & r) const;
+    T & at(const Vector<INT> & r);
+
+    // usual operations
+    template <class U> friend Array<U> & operator+(const Array<U> & a1, const Array<U> & a2);
+    template <class U> friend Array<U> & operator*(const Array<U> & a1, const Array<U> & a2);
 
 private :
 
@@ -73,7 +85,7 @@ private :
   std::vector<T> data_;
 
   // dimensions of the array
-  std::vector<INT> D_;
+  Vector<INT> D_;
 };
 
 template <class T>
@@ -102,7 +114,7 @@ Array<T>::Array(const unsigned int d, ...)
 }
 
 template <class T>
-Array<T>::Array(const std::vector<INT> &D)
+Array<T>::Array(const Vector<INT> &D)
 {
     D_ = D;
     INT n = 1;
@@ -111,7 +123,7 @@ Array<T>::Array(const std::vector<INT> &D)
 }
 
 template <class T>
-Array<T>::Array(const std::vector<INT> &D, const T &v)
+Array<T>::Array(const Vector<INT> &D, const T &v)
 {
     D_ = D;
     INT n = 1;
@@ -120,59 +132,127 @@ Array<T>::Array(const std::vector<INT> &D, const T &v)
 }
 
 template <class T>
-std::vector<INT> Array<T>::get_dim()
+Vector<INT> Array<T>::get_dim() const
 {
     return D_;
 }
 
 template <class T>
-INT Array<T>::get_size()
+INT Array<T>::get_size() const
 {
     return data_.size();
 }
 
 template <class T>
-T Array<T>::operator[](const INT i) const
+T & Array<T>::operator[](const INT i) const
 {
     return data_[i];
 }
 
 template <class T>
-T Array<T>::at(const INT i) const
+T & Array<T>::operator[](const INT i)
+{
+    return data_[i];
+}
+
+template <class T>
+T & Array<T>::at(const INT i) const
 {
     return data_.at(i);
 }
 
 template <class T>
-T Array<T>::operator[](const std::vector<INT> & r) const
+T & Array<T>::at(const INT i)
+{
+    return data_.at(i);
+}
+
+template <class T>
+T & Array<T>::operator[](const Vector<INT> & r) const
 {
     INT n = D_.size();
-    INT elem = D_[n-1];
+    INT elem = r[n-1];
     for(INT i=0;i<n-1;i++)
     {
-        elem *= r[n-i];
-        elem += D_[n-i];
+        elem *= D_[n-i-2];
+        elem += r[n-i-2];
     }
 
     return data_[elem];
 }
 
 template <class T>
-T Array<T>::at(const std::vector<INT> & r) const
+T & Array<T>::operator[](const Vector<INT> & r)
 {
-    if(r.size() != D_.size()) throw std::invalid_argument("In Array<T>::at");
-
-    for(INT i=0;i<r.size();i++) if(r[i] >= D_[i]) throw std::out_of_range("In Array<T>::at");
-
     INT n = D_.size();
-    INT elem = D_[n-1];
+    INT elem = r[n-1];
     for(INT i=0;i<n-1;i++)
     {
-        elem *= r[n-i];
-        elem += D_[n-i];
+        elem *= D_[n-i-2];
+        elem += r[n-i-2];
     }
 
     return data_[elem];
+}
+
+template <class T>
+T & Array<T>::at(const Vector<INT> & r) const
+{
+    if(r.size() != D_.size()) throw std::invalid_argument("In ij::Array<T>::at");
+
+    for(INT i=0;i<r.size();i++) if(r[i] >= D_[i]) throw std::out_of_range("In ij::Array<T>::at");
+
+    INT n = D_.size();
+    INT elem = r[n-1];
+    for(INT i=0;i<n-1;i++)
+    {
+        elem *= D_[n-i-2];
+        elem += r[n-i-2];
+    }
+
+    return data_[elem];
+}
+
+template <class T>
+T & Array<T>::at(const Vector<INT> & r)
+{
+    if(r.size() != D_.size()) throw std::invalid_argument("In ij::Array<T>::at");
+
+    for(INT i=0;i<r.size();i++) if(r[i] >= D_[i]) throw std::out_of_range("In ij::Array<T>::at");
+
+    INT n = D_.size();
+    INT elem = r[n-1];
+    for(INT i=0;i<n-1;i++)
+    {
+        elem *= D_[n-i-2];
+        elem += r[n-i-2];
+    }
+
+    return data_[elem];
+}
+
+template <class T>
+Array<T> & operator+(const Array<T> & a1, const Array<T> & a2)
+{
+    INT N = a1.D_.size();
+    if(N != a2.D_.size()) throw std::invalid_argument("In ij::Array<T>::operator+");
+
+    Array<T> temp (N);
+    for(int it=0;it<N;++it) temp[it] = a1[it] + a2[it];
+
+    return temp;
+}
+
+template <class T>
+Array<T> & operator*(const Array<T> & a1, const Array<T> & a2)
+{
+    INT N = a1.D_.size();
+    if(N != a2.D_.size()) throw std::invalid_argument("In ij::Array<T>::operator*");
+
+    Array<T> temp (N);
+    for(int it=0;it<N;++it) temp[it] = a1[it] * a2[it];
+
+    return temp;
 }
 
 }

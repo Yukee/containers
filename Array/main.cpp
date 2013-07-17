@@ -11,9 +11,7 @@ typedef int * T;
 int main()
 {
     INT n = 2;
-    INT N = 1;
-    T dat = new int [N];
-    Array<T> a1(Vector<INT> (2,n), dat);
+    Array<T> a1(Vector<INT> (2,n));
 
     Array<T> a2;
     a2 = a1;
@@ -25,10 +23,11 @@ int main()
     {
         for(INT j=0;j<n;j++)
         {
-            *a1[i*x+j*y] = i + j;
+            a1.at(i*x+j*y) = new int;
+            *a1.at(i*x+j*y) = i+j;
         }
     }
 
-    cout << *a1[4] << endl;
+    cout << *a1.at(x) << endl;
     return 0;
 }
