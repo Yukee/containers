@@ -63,16 +63,16 @@ public:
     }
 
     // access operators
-    T & operator[](const INT i) const;
+    const T & operator[](const INT i) const;
     T & operator[](const INT i);
 
-    T & operator[](const Vector<INT> & r) const;
+    const T & operator[](const Vector<INT> & r) const;
     T & operator[](const Vector<INT> & r);
 
-    T & at(const INT i) const;
+    const T & at(const INT i) const;
     T & at(const INT i);
 
-    T & at(const Vector<INT> & r) const;
+    const T & at(const Vector<INT> & r) const;
     T & at(const Vector<INT> & r);
 
     // usual operations
@@ -144,7 +144,7 @@ INT Array<T>::get_size() const
 }
 
 template <class T>
-T & Array<T>::operator[](const INT i) const
+const T & Array<T>::operator[](const INT i) const
 {
     return data_[i];
 }
@@ -156,7 +156,7 @@ T & Array<T>::operator[](const INT i)
 }
 
 template <class T>
-T & Array<T>::at(const INT i) const
+const T & Array<T>::at(const INT i) const
 {
     return data_.at(i);
 }
@@ -168,7 +168,7 @@ T & Array<T>::at(const INT i)
 }
 
 template <class T>
-T & Array<T>::operator[](const Vector<INT> & r) const
+const T & Array<T>::operator[](const Vector<INT> & r) const
 {
     INT n = D_.size();
     INT elem = r[n-1];
@@ -196,7 +196,7 @@ T & Array<T>::operator[](const Vector<INT> & r)
 }
 
 template <class T>
-T & Array<T>::at(const Vector<INT> & r) const
+T & Array<T>::at(const Vector<INT> & r)
 {
     if(r.size() != D_.size()) throw std::invalid_argument("In ij::Array<T>::at");
 
@@ -214,7 +214,7 @@ T & Array<T>::at(const Vector<INT> & r) const
 }
 
 template <class T>
-T & Array<T>::at(const Vector<INT> & r)
+const T &Array<T>::at(const Vector<INT> & r) const
 {
     if(r.size() != D_.size()) throw std::invalid_argument("In ij::Array<T>::at");
 
